@@ -17,20 +17,21 @@
     },
     {
       "id": "com.joaco.miinstalador",
-      "versionCode": 12,
-      "version": "2.3",
+      "versionCode": 13,
+      "version": "2.4",
       "nombre": "Mi Instalador",
       "tv": true,
-      "tamano": 570766,
-      "sha256": "3e7b90d904bbf7c08e572d079841ec38a88571d8de71ba72afe30508cc9f0415",
+      "tamano": 574862,
+      "sha256": "9c356245e2eb9b43df462273a451cdd372d5711e1a9215a906ab82f11a6008d4",
       "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.miinstalador.png",
       "fuente": "propia",
-      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-12/com.joaco.miinstalador-12.apk",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-13/com.joaco.miinstalador-13.apk",
       "descripcion": "Instala apps en tu TV",
       "categoria": "Utilidades",
       "detalle": "Instala apps en la caja Claro desde Descargas, desde el celular con un código QR, desde un enlace o desde esta Tienda. Muestra tus apps para abrirlas, actualizarlas o desinstalarlas.",
-      "novedades": "Nueva sección Mis apps, tarjetas más compactas y fuente Inter.",
-      "destacada": true
+      "novedades": "Ficha de cada app, categorías y búsqueda en la Tienda. El control ya no pierde la selección.",
+      "destacada": true,
+      "fecha": "2026-10-24"
     },
     {
       "id": "io.gh.reisxd.tizentube.cobalt",
