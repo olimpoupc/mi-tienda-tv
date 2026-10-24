@@ -3,6 +3,19 @@
   "version": 1,
   "apps": [
     {
+      "id": "betflix.play",
+      "versionCode": 32,
+      "version": "6.0.1",
+      "nombre": "Betflix",
+      "tv": true,
+      "tamano": 32817806,
+      "sha256": "504b2d32ce03c006a5e0d4441e1cde3bf4d90aae617b8377d9bb5f58c5f37632",
+      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/betflix.play.png",
+      "fuente": "oficial",
+      "apk": "https://archive.org/download/betflix-6.0.1/Betflix%206.0.1.apk",
+      "descripcion": "Pelis y series"
+    },
+    {
       "id": "com.joaco.miinstalador",
       "versionCode": 9,
       "version": "2.1",
