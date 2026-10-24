@@ -16,6 +16,24 @@
       "descripcion": "Pelis y series"
     },
     {
+      "id": "com.joaco.limpiartv",
+      "versionCode": 1,
+      "version": "1.0",
+      "nombre": "Limpiar TV",
+      "tv": true,
+      "tamano": 541528,
+      "sha256": "6ece25e24d9d51b7727e44fbe6459ce30cf839d091e47cbacfe1295cab312057",
+      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.limpiartv.png",
+      "fuente": "propia",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.limpiartv-1/com.joaco.limpiartv-1.apk",
+      "descripcion": "Libera memoria con un toque",
+      "categoria": "Utilidades",
+      "detalle": "Cierra todas las apps que quedaron abiertas (incluida Mi Instalador), libera memoria y se cierra sola. Nunca toca Projectivy, el teclado ni nada de Claro. La primera vez el TV pregunta «¿Permitir depuración?»: elige «Permitir siempre».",
+      "novedades": "Primera versión.",
+      "destacada": false,
+      "fecha": "2026-10-24"
+    },
+    {
       "id": "com.joaco.miinstalador",
       "versionCode": 16,
       "version": "2.7",
