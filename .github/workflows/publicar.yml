@@ -1,0 +1,77 @@
+# The robot behind the admin panel: the panel starts it, it runs publicar.py on GitHub's servers.
+name: Publicar
+run-name: ${{ inputs.pedido }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      pedido:
+        description: "Nombre del pedido (lo pone el panel)"
+        required: true
+      accion:
+        description: "apk | oficial | quitar"
+        required: true
+      origen:
+        description: "Enlace del APK (buzón u oficial), o el paquete a quitar"
+        required: true
+      descripcion:
+        description: "Texto corto que verá la gente"
+        required: false
+        default: ""
+      fijar:
+        description: "Fijar la huella de un enlace oficial (true/false)"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+
+# One change to the catalog at a time, so two publications never clash.
+concurrency:
+  group: tienda
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # Inputs go through env, never straight into the script, so text can't turn into commands.
+      ACCION: ${{ inputs.accion }}
+      ORIGEN: ${{ inputs.origen }}
+      DESC: ${{ inputs.descripcion }}
+      FIJAR: ${{ inputs.fijar }}
+      BUZON: https://github.com/${{ github.repository }}/releases/download/buzon/
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Publicar
+        run: |
+          set -e
+          case "$ACCION" in
+            apk)
+              # Only files the panel left in this repository's own mailbox.
+              case "$ORIGEN" in "$BUZON"*) ;; *) echo "::error::El APK debe venir del buzón del panel."; exit 1 ;; esac
+              curl -fsSL -o /tmp/app.apk "$ORIGEN"
+              python3 publicar.py apk /tmp/app.apk --desc "$DESC" ;;
+            oficial)
+              case "$ORIGEN" in https://*) ;; *) echo "::error::El enlace debe empezar con https://"; exit 1 ;; esac
+              if [ "$FIJAR" = "true" ]; then
+                python3 publicar.py oficial "$ORIGEN" --desc "$DESC" --fijar
+              else
+                python3 publicar.py oficial "$ORIGEN" --desc "$DESC"
+              fi ;;
+            quitar)
+              python3 publicar.py quitar "$ORIGEN" ;;
+            *)
+              echo "::error::Acción desconocida: $ACCION"; exit 1 ;;
+          esac
+
+      - name: Vaciar el buzón
+        if: always() && inputs.accion == 'apk'
+        run: gh release delete-asset buzon "${ORIGEN##*/}" -R "$GITHUB_REPOSITORY" -y || true

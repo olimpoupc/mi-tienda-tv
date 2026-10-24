@@ -11,10 +11,12 @@ Con --fijar guarda también su huella SHA-256: más seguro, pero si el sitio ofi
 el archivo, la tienda dirá que no coincide hasta que vuelvas a publicarlo.
 """
 import argparse
+import glob
 import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -26,8 +28,24 @@ RAW = f"https://raw.githubusercontent.com/{REPO}/main"
 HERE = os.path.dirname(os.path.abspath(__file__))
 CATALOG = os.path.join(HERE, "tienda.json")
 ICONS = os.path.join(HERE, "iconos")
-AAPT2 = os.path.join(os.environ["LOCALAPPDATA"], "Android", "Sdk", "build-tools", "34.0.0", "aapt2.exe")
-GH = r"C:\Program Files\GitHub CLI\gh.exe"
+
+
+def find_aapt2():
+    """Windows PC (LOCALAPPDATA) or GitHub's Ubuntu runners (ANDROID_HOME), newest build-tools first."""
+    if os.environ.get("AAPT2"):
+        return os.environ["AAPT2"]
+    roots = [os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT"),
+             os.path.join(os.environ.get("LOCALAPPDATA", ""), "Android", "Sdk")]
+    for root in filter(None, roots):
+        found = sorted(glob.glob(os.path.join(root, "build-tools", "*", "aapt2*")), reverse=True)
+        found = [f for f in found if os.path.basename(f) in ("aapt2", "aapt2.exe")]
+        if found:
+            return found[0]
+    sys.exit("No encontré aapt2 (Android SDK build-tools).")
+
+
+AAPT2 = find_aapt2()
+GH = shutil.which("gh") or r"C:\Program Files\GitHub CLI\gh.exe"
 
 
 def run(*cmd, check=True):
@@ -80,6 +98,8 @@ def save_icon(apk_path, info):
 
 
 def load():
+    if subprocess.run(["git", "rev-parse", "--abbrev-ref", "@{u}"], cwd=HERE, capture_output=True).returncode == 0:
+        run("git", "pull", "--rebase", check=False)
     with open(CATALOG, encoding="utf-8") as f:
         return json.load(f)
 
@@ -89,8 +109,13 @@ def save(cat, message):
     with open(CATALOG, "w", encoding="utf-8", newline="\n") as f:
         json.dump(cat, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    run("git", "add", "-A")
+    run("git", "add", "-A", "tienda.json", *(["iconos"] if os.path.isdir(ICONS) else []))
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=HERE).returncode == 0:
+        print("El catálogo ya estaba así; no hay cambios que guardar.")
+        return
     run("git", "commit", "-m", message + "\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
+    # The phone panel and this PC may both publish: take the other's changes first.
+    run("git", "pull", "--rebase")
     run("git", "push")
 
 
