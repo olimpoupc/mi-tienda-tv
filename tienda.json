@@ -26,7 +26,11 @@
       "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.miinstalador.png",
       "fuente": "propia",
       "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-12/com.joaco.miinstalador-12.apk",
-      "descripcion": "Instala apps en tu TV"
+      "descripcion": "Instala apps en tu TV",
+      "categoria": "Utilidades",
+      "detalle": "Instala apps en la caja Claro desde Descargas, desde el celular con un código QR, desde un enlace o desde esta Tienda. Muestra tus apps para abrirlas, actualizarlas o desinstalarlas.",
+      "novedades": "Nueva sección Mis apps, tarjetas más compactas y fuente Inter.",
+      "destacada": true
     },
     {
       "id": "io.gh.reisxd.tizentube.cobalt",
