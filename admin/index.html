@@ -181,6 +181,8 @@ async function dispatch(pedido, accion, origen, extra = {}) {
     method: 'POST',
     body: JSON.stringify({ ref: 'main', inputs: Object.assign({ pedido, accion, origen }, extra) })
   });
+  if (r.status === 403 || r.status === 404)
+    throw new Error('Tu token no tiene permiso para usar el robot. En GitHub, edita el token y pon "Actions: Read and write" (' + r.status + ').');
   if (r.status !== 204) throw new Error('GitHub no aceptó el pedido (' + r.status + ').');
 }
 
