@@ -152,6 +152,10 @@ def cmd_oficial(args):
     req = urllib.request.Request(args.url, headers={"User-Agent": "MiTiendaTV"})
     with urllib.request.urlopen(req) as r, open(path, "wb") as f:
         f.write(r.read())
+    with open(path, "rb") as f:
+        if f.read(2) != b"PK":
+            sys.exit("❌ Ese enlace no descarga un .apk: lleva a una página web. "
+                     "Usa el enlace directo al archivo (el que se obtiene al tocar Descargar).")
     info = read_apk(path)
     save_icon(path, info)
     if not args.fijar:
