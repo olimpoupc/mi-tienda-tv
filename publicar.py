@@ -3,6 +3,7 @@
 Uso (desde esta carpeta):
   python publicar.py apk RUTA.apk [--desc "texto"]        sube el APK a GitHub (🏠 propia)
   python publicar.py oficial URL [--desc "texto"] [--fijar] enlaza la descarga oficial (🌐)
+  python publicar.py editar PAQUETE [--categoria …] [--detalle …] [--novedades …] [--destacada si|no]
   python publicar.py quitar PAQUETE                        quita una app del catálogo
   python publicar.py lista                                 muestra el catálogo
 
@@ -11,6 +12,7 @@ Con --fijar guarda también su huella SHA-256: más seguro, pero si el sitio ofi
 el archivo, la tienda dirá que no coincide hasta que vuelvas a publicarlo.
 """
 import argparse
+import datetime
 import glob
 import hashlib
 import json
@@ -99,7 +101,7 @@ def save_icon(apk_path, info):
 
 def load():
     if subprocess.run(["git", "rev-parse", "--abbrev-ref", "@{u}"], cwd=HERE, capture_output=True).returncode == 0:
-        run("git", "pull", "--rebase", check=False)
+        run("git", "pull", "--rebase", "--autostash", check=False)
     with open(CATALOG, encoding="utf-8") as f:
         return json.load(f)
 
@@ -115,11 +117,37 @@ def save(cat, message):
         return
     run("git", "commit", "-m", message + "\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
     # The phone panel and this PC may both publish: take the other's changes first.
-    run("git", "pull", "--rebase")
+    run("git", "pull", "--rebase", "--autostash")
     run("git", "push")
 
 
-def upsert(cat, info):
+# What a person writes about an app (not read from the APK). A new version keeps them unless new ones
+# are given, except "novedades", which belongs to one version.
+EDITABLE = ("descripcion", "categoria", "detalle", "novedades", "destacada")
+
+
+def written(args):
+    """The editable fields given on the command line; None means "not given, keep what's there"."""
+    vals = {
+        "descripcion": args.desc,
+        "categoria": args.categoria,
+        "detalle": args.detalle,
+        "novedades": args.novedades,
+        "destacada": None if args.destacada is None else args.destacada == "si",
+    }
+    return {k: v for k, v in vals.items() if v is not None}
+
+
+def upsert(cat, info, given):
+    old = next((a for a in cat["apps"] if a["id"] == info["id"]), {})
+    for k in EDITABLE:
+        if k in given:
+            info[k] = given[k]
+        elif k == "novedades" and old.get("versionCode") != info.get("versionCode"):
+            info[k] = ""
+        else:
+            info[k] = old.get(k, False if k == "destacada" else "")
+    info["fecha"] = datetime.date.today().isoformat()
     cat["apps"] = [a for a in cat["apps"] if a["id"] != info["id"]] + [info]
 
 
@@ -137,10 +165,9 @@ def cmd_apk(args):
     else:
         run(GH, "release", "create", tag, tmp, "-R", REPO, "--title", f"{info['nombre']} {info['version']}",
             "--notes", f"{info['nombre']} {info['version']} ({info['id']})")
-    info.update(fuente="propia", apk=f"https://github.com/{REPO}/releases/download/{tag}/{asset}",
-                descripcion=args.desc or "")
+    info.update(fuente="propia", apk=f"https://github.com/{REPO}/releases/download/{tag}/{asset}")
     cat = load()
-    upsert(cat, info)
+    upsert(cat, info, written(args))
     save(cat, f"Publicar {info['nombre']} {info['version']}")
     print(f"✅ {info['nombre']} {info['version']} publicada (🏠 propia, {'📺 TV' if info['tv'] else '📱 celular'}).")
 
@@ -160,9 +187,9 @@ def cmd_oficial(args):
     save_icon(path, info)
     if not args.fijar:
         info["sha256"] = ""
-    info.update(fuente="oficial", apk=args.url, descripcion=args.desc or "")
+    info.update(fuente="oficial", apk=args.url)
     cat = load()
-    upsert(cat, info)
+    upsert(cat, info, written(args))
     save(cat, f"Enlazar {info['nombre']} {info['version']} (oficial)")
     print(f"✅ {info['nombre']} {info['version']} enlazada (🌐 oficial{', huella fijada' if args.fijar else ''}).")
 
@@ -181,9 +208,24 @@ def cmd_quitar(args):
     print(f"✅ {args.paquete} quitada del catálogo. Sus archivos en Releases siguen allí; bórralos en GitHub si quieres.")
 
 
+def cmd_editar(args):
+    """Changes what's written about an app, without uploading it again."""
+    cat = load()
+    app = next((a for a in cat["apps"] if a["id"] == args.paquete), None)
+    if not app:
+        sys.exit(f"{args.paquete} no está en el catálogo.")
+    given = written(args)
+    if not given:
+        sys.exit("No indicaste nada que cambiar.")
+    app.update(given)
+    save(cat, f"Editar {app['nombre']}")
+    print(f"✅ {app['nombre']}: datos actualizados ({', '.join(given)}).")
+
+
 def cmd_lista(_):
     for a in load()["apps"]:
-        print(f"{'📺' if a['tv'] else '📱'} {'🏠' if a['fuente'] == 'propia' else '🌐'}  {a['nombre']} {a['version']}"
+        print(f"{'⭐' if a.get('destacada') else '  '}{'📺' if a['tv'] else '📱'} {'🏠' if a['fuente'] == 'propia' else '🌐'}"
+              f"  {a['nombre']} {a['version']}  [{a.get('categoria') or 'sin categoría'}]"
               f"  ({a['id']}, {a['tamano'] / 1048576:.1f} MB)")
 
 
@@ -191,12 +233,21 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Administra Mi Tienda TV")
     sub = p.add_subparsers(dest="cmd", required=True)
-    a = sub.add_parser("apk"); a.add_argument("ruta"); a.add_argument("--desc")
-    o = sub.add_parser("oficial"); o.add_argument("url"); o.add_argument("--desc"); o.add_argument("--fijar", action="store_true")
+
+    def texts(sp):
+        sp.add_argument("--desc", help="texto corto bajo el nombre")
+        sp.add_argument("--categoria", help="por ejemplo: Películas, Música, Juegos, Utilidades")
+        sp.add_argument("--detalle", help="descripción larga para la ficha")
+        sp.add_argument("--novedades", help="qué trae esta versión")
+        sp.add_argument("--destacada", choices=["si", "no"], help="mostrarla primero en la tienda")
+
+    a = sub.add_parser("apk"); a.add_argument("ruta"); texts(a)
+    o = sub.add_parser("oficial"); o.add_argument("url"); o.add_argument("--fijar", action="store_true"); texts(o)
+    e = sub.add_parser("editar"); e.add_argument("paquete"); texts(e)
     q = sub.add_parser("quitar"); q.add_argument("paquete")
     sub.add_parser("lista")
     args = p.parse_args()
-    {"apk": cmd_apk, "oficial": cmd_oficial, "quitar": cmd_quitar, "lista": cmd_lista}[args.cmd](args)
+    {"apk": cmd_apk, "oficial": cmd_oficial, "editar": cmd_editar, "quitar": cmd_quitar, "lista": cmd_lista}[args.cmd](args)
 
 
 if __name__ == "__main__":
