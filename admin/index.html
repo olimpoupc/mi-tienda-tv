@@ -114,9 +114,21 @@
       <div id="apps" class="empty">Cargando…</div>
     </section>
 
-    <footer><button id="logout">Desconectar este celular</button></footer>
+    <section class="card">
+      <h2>Conectar mi celular</h2>
+      <p class="hint">Escanea el código con la cámara del celular y el panel se abre allá ya conectado, sin pegar el token.</p>
+      <button class="btn ghost" id="pairBtn">Mostrar código QR</button>
+      <div id="pair" class="hidden" style="text-align:center;margin-top:14px">
+        <div id="qr" style="display:inline-block;background:#fff;padding:12px;border-radius:14px"></div>
+        <p class="hint" style="margin-top:10px">⚠️ Este código es tu llave: no le tomes foto ni lo muestres a nadie. Se oculta solo en <b id="pairLeft">60</b> s.</p>
+      </div>
+    </section>
+
+    <footer><button id="logout">Desconectar este dispositivo</button></footer>
   </div>
 </main>
+<!-- Pinned by hash: the panel holds your token, so this file must be exactly the one checked. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 const REPO = 'olimpoupc/mi-tienda-tv';
 const WORKFLOW = 'publicar.yml';
@@ -124,6 +136,15 @@ const $ = id => document.getElementById(id);
 let token = '';
 try { token = localStorage.getItem('mt_token') || ''; } catch (e) {}
 let tab = 'apk';
+
+// A pairing QR carries the token after "#" — browsers never send that part to any server.
+// Save it, then wipe it from the address bar and history right away.
+const fromQr = new URLSearchParams(location.hash.slice(1)).get('t');
+if (fromQr) {
+  history.replaceState(null, '', location.pathname);
+  $('token').value = fromQr;
+  setTimeout(connect, 0);
+}
 
 function api(path, opts = {}) {
   return fetch('https://api.github.com' + path, Object.assign({}, opts, {
@@ -157,6 +178,27 @@ function show() {
   if (token) { loadApps(); loadRuns(); }
 }
 $('save').onclick = connect;
+
+// ---- Pair another phone with a short-lived QR ----
+let pairTimer = null;
+$('pairBtn').onclick = () => {
+  if (pairTimer) return hidePair();
+  const url = location.origin + location.pathname + '#t=' + encodeURIComponent(token);
+  $('qr').innerHTML = '';
+  if (window.QRCode) new QRCode($('qr'), { text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.L });
+  else $('qr').textContent = 'No pude cargar el generador de QR. Revisa tu conexión.';
+  $('pair').classList.remove('hidden');
+  $('pairBtn').textContent = 'Ocultar código';
+  let left = 60;
+  $('pairLeft').textContent = left;
+  pairTimer = setInterval(() => { if (--left <= 0) hidePair(); else $('pairLeft').textContent = left; }, 1000);
+};
+function hidePair() {
+  clearInterval(pairTimer); pairTimer = null;
+  $('qr').innerHTML = '';
+  $('pair').classList.add('hidden');
+  $('pairBtn').textContent = 'Mostrar código QR';
+}
 $('logout').onclick = () => { if (confirm('¿Desconectar este celular? Tendrás que pegar el token otra vez.')) { try { localStorage.removeItem('mt_token'); } catch (e) {} token = ''; show(); } };
 
 // ---- Publish form ----
