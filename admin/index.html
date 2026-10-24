@@ -25,7 +25,13 @@
   label { display:block; font-size:13px; color:var(--muted); margin: 12px 0 6px; }
   input[type=text], input[type=url], input[type=password] { width:100%; padding:14px; border-radius:12px; border:1px solid var(--line);
     background:#0F1427; color:var(--text); font-size:16px; outline:none; }
-  input:focus { border-color: var(--a); }
+  textarea { width:100%; padding:14px; border-radius:12px; border:1px solid var(--line); background:#0F1427; color:var(--text);
+    font-size:16px; line-height:1.4; font-family: inherit; outline:none; resize: vertical; min-height: 84px; }
+  input:focus, textarea:focus { border-color: var(--a); }
+  details.more { margin-top: 12px; } details.more summary { color: var(--a); font-size: 14px; cursor: pointer; }
+  .tag { display:inline-block; font-size:11.5px; padding:2px 8px; border-radius:99px; background:#0F1427; border:1px solid var(--line); color:var(--muted); margin-top:4px; }
+  .app .acts { display:flex; flex-direction:column; gap:6px; }
+  .app button.edit { border-color: var(--line); color: var(--text); }
   .btn { width:100%; border:0; border-radius:12px; padding:15px; font-size:17px; font-weight:600; color:#fff; margin-top:14px;
          background: linear-gradient(135deg, var(--a), var(--b)); }
   .btn:disabled { opacity:.45; } .btn.ghost { background:transparent; border:1px solid var(--line); color:var(--text); font-weight:500; }
@@ -98,6 +104,17 @@
 
       <label for="desc">Descripción corta</label>
       <input id="desc" type="text" maxlength="60" placeholder="Ej.: Películas y series">
+      <label for="cat">Categoría</label>
+      <input id="cat" type="text" maxlength="30" list="cats" placeholder="Ej.: Películas y series, Música, Juegos…">
+      <datalist id="cats"></datalist>
+      <details class="more">
+        <summary>Más datos para la ficha (opcional)</summary>
+        <label for="detalle">Descripción larga</label>
+        <textarea id="detalle" maxlength="600" placeholder="Qué hace la app, para quién es…"></textarea>
+        <label for="novedades">Novedades de esta versión</label>
+        <textarea id="novedades" maxlength="300" placeholder="Qué cambió en esta versión"></textarea>
+        <label class="check"><input type="checkbox" id="dest"><span>Destacada: mostrarla primero en la tienda.</span></label>
+      </details>
       <div class="bar" id="bar"><i id="fill"></i></div>
       <button class="btn" id="publish" disabled>Publicar en la tienda</button>
       <div class="msg" id="pubMsg"></div>
@@ -107,6 +124,22 @@
       <h2>Actividad</h2>
       <p class="hint">El robot de GitHub tarda uno o dos minutos por publicación.</p>
       <div id="runs" class="empty">Cargando…</div>
+    </section>
+
+    <section class="card hidden" id="editCard">
+      <h2 id="editTitle">Editar</h2>
+      <p class="hint">Cambia lo que se muestra en la tienda sin volver a subir la app.</p>
+      <label for="eDesc">Descripción corta</label>
+      <input id="eDesc" type="text" maxlength="60">
+      <label for="eCat">Categoría</label>
+      <input id="eCat" type="text" maxlength="30" list="cats">
+      <label for="eDetalle">Descripción larga</label>
+      <textarea id="eDetalle" maxlength="600"></textarea>
+      <label for="eNovedades">Novedades de esta versión</label>
+      <textarea id="eNovedades" maxlength="300"></textarea>
+      <label class="check"><input type="checkbox" id="eDest"><span>Destacada: mostrarla primero en la tienda.</span></label>
+      <button class="btn" id="eSave">Guardar cambios</button>
+      <button class="btn ghost" id="eCancel">Cancelar</button>
     </section>
 
     <section class="card">
@@ -258,7 +291,8 @@ function upload(id, file, name) {
 }
 
 $('publish').onclick = async () => {
-  const desc = $('desc').value.trim();
+  const extra = { descripcion: $('desc').value.trim(), categoria: $('cat').value.trim(), detalle: $('detalle').value.trim(),
+                  novedades: $('novedades').value.trim(), destacada: $('dest').checked ? 'si' : '' };
   $('publish').disabled = true;
   try {
     let pedido;
@@ -268,14 +302,14 @@ $('publish').onclick = async () => {
       msg($('pubMsg'), 'Preparando…', 'info');
       const asset = await upload(await buzonId(), f, name);
       pedido = 'Subir ' + f.name + ' · ' + rand();
-      await dispatch(pedido, 'apk', asset.browser_download_url, { descripcion: desc });
+      await dispatch(pedido, 'apk', asset.browser_download_url, extra);
     } else {
       const u = $('url').value.trim();
       pedido = 'Enlazar ' + u.split('/').pop().slice(0, 40) + ' · ' + rand();
-      await dispatch(pedido, 'oficial', u, { descripcion: desc, fijar: $('fijar').checked ? 'true' : 'false' });
+      await dispatch(pedido, 'oficial', u, Object.assign({ fijar: $('fijar').checked ? 'true' : 'false' }, extra));
     }
     msg($('pubMsg'), 'Enviado. El robot lo está publicando; mira "Actividad".', 'ok');
-    $('file').value = ''; $('url').value = ''; $('desc').value = ''; $('file').onchange();
+    ['file', 'url', 'desc', 'cat', 'detalle', 'novedades'].forEach(id => $(id).value = ''); $('dest').checked = false; $('file').onchange();
     watch(pedido);
   } catch (e) {
     msg($('pubMsg'), e.message, 'bad');
@@ -318,22 +352,55 @@ async function loadApps() {
   const r = await api(`/repos/${REPO}/contents/tienda.json`, { headers: { 'Accept': 'application/vnd.github.raw' } }).catch(() => null);
   if (!r || !r.ok) { $('apps').textContent = 'No pude leer el catálogo.'; return; }
   const apps = (await r.json()).apps || [];
+  const cats = [...new Set(apps.map(a => a.categoria).filter(Boolean)
+    .concat(['Películas y series', 'Música', 'Deportes', 'Juegos', 'Infantil', 'Utilidades']))];
+  $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
   $('apps').classList.toggle('empty', !apps.length);
-  $('apps').innerHTML = apps.length ? apps.map(a => `<div class="app">
+  $('apps').innerHTML = apps.length ? apps.map((a, i) => `<div class="app">
       <img src="${esc(a.icono || '')}" alt="">
-      <div class="t"><b>${esc(a.nombre)}</b><small>v${esc(a.version)} · ${(a.tamano / 1048576).toFixed(1)} MB · ${a.tv ? '📺 TV' : '📱 Celular'} · ${a.fuente === 'propia' ? '🏠 Tuya' : '🌐 Oficial'}</small></div>
-      <button data-id="${esc(a.id)}" data-name="${esc(a.nombre)}">Quitar</button></div>`).join('') : 'La tienda está vacía.';
-  $('apps').querySelectorAll('button').forEach(b => b.onclick = async () => {
-    if (!confirm(`¿Quitar ${b.dataset.name} de la tienda? Las cajas que ya la tienen no la pierden.`)) return;
+      <div class="t"><b>${a.destacada ? '⭐ ' : ''}${esc(a.nombre)}</b><small>v${esc(a.version)} · ${(a.tamano / 1048576).toFixed(1)} MB · ${a.tv ? '📺 TV' : '📱 Celular'} · ${a.fuente === 'propia' ? '🏠 Tuya' : '🌐 Oficial'}</small>
+        <span class="tag">${esc(a.categoria || 'sin categoría')}</span></div>
+      <div class="acts"><button class="edit" data-i="${i}">Editar</button><button class="del" data-i="${i}">Quitar</button></div></div>`).join('') : 'La tienda está vacía.';
+  $('apps').querySelectorAll('button.del').forEach(b => b.onclick = async () => {
+    const a = apps[b.dataset.i];
+    if (!confirm(`¿Quitar ${a.nombre} de la tienda? Las cajas que ya la tienen no la pierden.`)) return;
     b.disabled = true;
     try {
-      const pedido = 'Quitar ' + b.dataset.name + ' · ' + rand();
-      await dispatch(pedido, 'quitar', b.dataset.id);
-      msg($('pubMsg'), 'Pedido enviado: quitar ' + b.dataset.name + '.', 'ok');
+      const pedido = 'Quitar ' + a.nombre + ' · ' + rand();
+      await dispatch(pedido, 'quitar', a.id);
+      msg($('pubMsg'), 'Pedido enviado: quitar ' + a.nombre + '.', 'ok');
       watch(pedido);
     } catch (e) { msg($('pubMsg'), e.message, 'bad'); b.disabled = false; }
   });
+  $('apps').querySelectorAll('button.edit').forEach(b => b.onclick = () => openEdit(apps[b.dataset.i]));
 }
+
+// ---- Edit what the store shows about an app ----
+let editing = null;
+function openEdit(a) {
+  editing = a;
+  $('editTitle').textContent = 'Editar ' + a.nombre;
+  $('eDesc').value = a.descripcion || ''; $('eCat').value = a.categoria || '';
+  $('eDetalle').value = a.detalle || ''; $('eNovedades').value = a.novedades || '';
+  $('eDest').checked = !!a.destacada;
+  $('editCard').classList.remove('hidden');
+  $('editCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('eCancel').onclick = () => { editing = null; $('editCard').classList.add('hidden'); };
+$('eSave').onclick = async () => {
+  if (!editing) return;
+  $('eSave').disabled = true;
+  try {
+    const pedido = 'Editar ' + editing.nombre + ' · ' + rand();
+    await dispatch(pedido, 'editar', editing.id, {
+      descripcion: $('eDesc').value.trim(), categoria: $('eCat').value.trim(), detalle: $('eDetalle').value.trim(),
+      novedades: $('eNovedades').value.trim(), destacada: $('eDest').checked ? 'si' : 'no' });
+    $('editCard').classList.add('hidden');
+    msg($('pubMsg'), 'Cambios enviados. Mira "Actividad".', 'ok');
+    $('pubMsg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    watch(pedido);
+  } catch (e) { alert(e.message); } finally { $('eSave').disabled = false; }
+};
 
 show();
 </script>
