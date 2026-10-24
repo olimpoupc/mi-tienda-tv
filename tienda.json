@@ -9,7 +9,7 @@
       "nombre": "Mi Instalador",
       "tv": true,
       "tamano": 107714,
-      "sha256": "58be4b402bcbfc4059b23806e0a46cb5c51c9c5d8f3af975b6b6d8b7214dd91d",
+      "sha256": "7afb3f56edfdfa58dbec700f0aca3cfacbc67d337b787d8dd3377e0e9dc7d9f0",
       "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.miinstalador.png",
       "fuente": "propia",
       "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-8/com.joaco.miinstalador-8.apk",
