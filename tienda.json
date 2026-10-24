@@ -17,15 +17,15 @@
     },
     {
       "id": "com.joaco.miinstalador",
-      "versionCode": 8,
-      "version": "2.0",
+      "versionCode": 9,
+      "version": "2.1",
       "nombre": "Mi Instalador",
       "tv": true,
-      "tamano": 107714,
-      "sha256": "7afb3f56edfdfa58dbec700f0aca3cfacbc67d337b787d8dd3377e0e9dc7d9f0",
+      "tamano": 107713,
+      "sha256": "5cc2329e5bd925617b7b552765a9f3278164dafd2e85d588fefe6407532ed367",
       "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.miinstalador.png",
       "fuente": "propia",
-      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-8/com.joaco.miinstalador-8.apk",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-9/com.joaco.miinstalador-9.apk",
       "descripcion": "Instala apps en tu TV"
     }
   ]
