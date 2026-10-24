@@ -17,15 +17,15 @@
     },
     {
       "id": "com.joaco.miinstalador",
-      "versionCode": 11,
-      "version": "2.2",
+      "versionCode": 12,
+      "version": "2.3",
       "nombre": "Mi Instalador",
       "tv": true,
-      "tamano": 570694,
-      "sha256": "930728c143a17ee5af7aaaedcb5dc349453cc65602382e0276ba3698438d556a",
+      "tamano": 570766,
+      "sha256": "3e7b90d904bbf7c08e572d079841ec38a88571d8de71ba72afe30508cc9f0415",
       "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.joaco.miinstalador.png",
       "fuente": "propia",
-      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-11/com.joaco.miinstalador-11.apk",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.joaco.miinstalador-12/com.joaco.miinstalador-12.apk",
       "descripcion": "Instala apps en tu TV"
     },
     {
