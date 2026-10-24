@@ -3,19 +3,6 @@
   "version": 1,
   "apps": [
     {
-      "id": "cm.aptoidetv.pt",
-      "versionCode": 542,
-      "version": "5.1.3",
-      "nombre": "Aptoide TV",
-      "tv": true,
-      "tamano": 12055830,
-      "sha256": "9118ef8d92dec8629ce8e3440b536c2975dcfdc068ae220b504304ad9da2c74d",
-      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/cm.aptoidetv.pt.png",
-      "fuente": "oficial",
-      "apk": "https://pool.apk.aptoide.com/carolyne-silva/cm-aptoidetv-pt-542-72049303-6212d8ef0991eaf05b32f8f0141dadb8.apk",
-      "descripcion": "Tienda de apps para TV"
-    },
-    {
       "id": "com.joaco.miinstalador",
       "versionCode": 9,
       "version": "2.1",
