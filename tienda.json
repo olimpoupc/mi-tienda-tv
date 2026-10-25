@@ -62,6 +62,24 @@
       "fuente": "oficial",
       "apk": "https://github.com/reisxd/TizenTubeCobalt/releases/download/v2.0.3/cobalt-arm64.apk",
       "descripcion": "Youtube"
+    },
+    {
+      "id": "com.xuper.netxxus",
+      "versionCode": 43404,
+      "version": "4.34.4",
+      "nombre": "Xuper Hydra",
+      "tv": true,
+      "tamano": 35936833,
+      "sha256": "afa10a15c212d088a7b7f9148ddb679b1feb154d898db35274e832a347a0aeb5",
+      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.xuper.netxxus.png",
+      "fuente": "propia",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.xuper.netxxus-43404/com.xuper.netxxus-43404.apk",
+      "descripcion": "Xupertv",
+      "categoria": "Películas y series",
+      "detalle": "",
+      "novedades": "",
+      "destacada": false,
+      "fecha": "2026-10-25"
     }
   ]
 }
