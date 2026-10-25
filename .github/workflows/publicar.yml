@@ -12,7 +12,7 @@ on:
         description: "apk | oficial | editar | quitar"
         required: true
       origen:
-        description: "Enlace del APK (buzón u oficial), o el paquete a editar o quitar"
+        description: "Rama buzon-… con el APK en partes, enlace oficial, o el paquete a editar o quitar"
         required: true
       descripcion:
         description: "Texto corto que verá la gente (vacío = dejar el que tiene)"
@@ -61,7 +61,6 @@ jobs:
       NOVEDADES: ${{ inputs.novedades }}
       DESTACADA: ${{ inputs.destacada }}
       FIJAR: ${{ inputs.fijar }}
-      BUZON: https://github.com/${{ github.repository }}/releases/download/buzon/
     steps:
       - uses: actions/checkout@v4
 
@@ -82,9 +81,15 @@ jobs:
           case "$DESTACADA" in si|no) set -- "$@" --destacada "$DESTACADA" ;; esac
           case "$ACCION" in
             apk)
-              # Only files the panel left in this repository's own mailbox.
-              case "$ORIGEN" in "$BUZON"*) ;; *) echo "::error::El APK debe venir del buzón del panel."; exit 1 ;; esac
-              curl -fsSL -o /tmp/app.apk "$ORIGEN"
+              # The panel leaves the APK in 24 MB parts (partes/000, 001…) on a temporary buzon-… branch.
+              if ! printf '%s' "$ORIGEN" | grep -Eq '^buzon-[0-9]+-[a-z0-9]+$'; then
+                echo "::error::El APK debe venir del buzón del panel."; exit 1
+              fi
+              git fetch --depth=1 origin "refs/heads/$ORIGEN:refs/remotes/origin/$ORIGEN"
+              : > /tmp/app.apk
+              for f in $(git ls-tree --name-only "origin/$ORIGEN" partes/ | sort); do
+                git show "origin/$ORIGEN:$f" >> /tmp/app.apk
+              done
               python3 publicar.py apk /tmp/app.apk "$@" ;;
             oficial)
               case "$ORIGEN" in https://*) ;; *) echo "::error::El enlace debe empezar con https://"; exit 1 ;; esac
@@ -103,4 +108,5 @@ jobs:
 
       - name: Vaciar el buzón
         if: always() && inputs.accion == 'apk'
-        run: gh release delete-asset buzon "${ORIGEN##*/}" -R "$GITHUB_REPOSITORY" -y || true
+        run: |
+          printf '%s' "$ORIGEN" | grep -Eq '^buzon-[0-9]+-[a-z0-9]+$' && gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$ORIGEN" || true
