@@ -68,24 +68,6 @@
       "novedades": "",
       "destacada": false,
       "fecha": "2026-10-25"
-    },
-    {
-      "id": "io.gh.reisxd.tizentube.cobalt",
-      "versionCode": 108,
-      "version": "1.0.8",
-      "nombre": "YouTube",
-      "tv": true,
-      "tamano": 38969533,
-      "sha256": "3df1ebb2da1428d7ce5e73d04d524d984609f7fe3b4bc7ee5ceea93f823b3be9",
-      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/io.gh.reisxd.tizentube.cobalt.png",
-      "fuente": "propia",
-      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/io.gh.reisxd.tizentube.cobalt-108/io.gh.reisxd.tizentube.cobalt-108.apk",
-      "descripcion": "Youtube",
-      "categoria": "Utilidades",
-      "detalle": "",
-      "novedades": "",
-      "destacada": false,
-      "fecha": "2026-10-26"
     }
   ]
 }
