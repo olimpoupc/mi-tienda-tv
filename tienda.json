@@ -52,18 +52,6 @@
       "fecha": "2026-10-24"
     },
     {
-      "id": "io.gh.reisxd.tizentube.cobalt",
-      "versionCode": 203,
-      "version": "2.0.3",
-      "nombre": "TizenTube",
-      "tv": true,
-      "tamano": 153048724,
-      "sha256": "4e3df211abb243cb06b06ba3676fe62c3d5b59baa47c1a0050cb180b3493e539",
-      "fuente": "oficial",
-      "apk": "https://github.com/reisxd/TizenTubeCobalt/releases/download/v2.0.3/cobalt-arm64.apk",
-      "descripcion": "Youtube"
-    },
-    {
       "id": "com.xuper.netxxus",
       "versionCode": 43404,
       "version": "4.34.4",
