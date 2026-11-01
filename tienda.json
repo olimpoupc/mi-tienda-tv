@@ -52,6 +52,24 @@
       "fecha": "2026-10-24"
     },
     {
+      "id": "com.xuper.wiwyxuper",
+      "versionCode": 43533,
+      "version": "4.34.16",
+      "nombre": "WiwyXuper",
+      "tv": true,
+      "tamano": 44044759,
+      "sha256": "26ced01951cf7e694dff31c1425064af9e29994432c4a2428ec3a1987853592d",
+      "icono": "https://raw.githubusercontent.com/olimpoupc/mi-tienda-tv/main/iconos/com.xuper.wiwyxuper.webp",
+      "fuente": "propia",
+      "apk": "https://github.com/olimpoupc/mi-tienda-tv/releases/download/com.xuper.wiwyxuper-43533/com.xuper.wiwyxuper-43533.apk",
+      "descripcion": "Xupertv",
+      "categoria": "Películas y series",
+      "detalle": "",
+      "novedades": "",
+      "destacada": false,
+      "fecha": "2026-11-01"
+    },
+    {
       "id": "com.xuper.netxxus",
       "versionCode": 43404,
       "version": "4.34.4",
